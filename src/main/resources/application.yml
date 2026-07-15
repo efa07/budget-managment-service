@@ -1,0 +1,48 @@
+server:
+  port: 9192
+
+spring:
+  application:
+    name: project-planning-service
+
+  config:
+    import: optional:configserver:${CONFIG_SERVER_BASE_URL:http://config-server.default.svc.cluster.local:8888}
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+  datasource:
+    url: ${DB_URL:jdbc:mysql://localhost:3306/project-planning_db}?createDatabaseIfNotExist=true
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:root}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  servlet:
+    multipart:
+      enabled: true
+      file-size-threshold: 2KB
+      max-file-size: 10MB
+      max-request-size: 10MB
+
+rabbitmq:
+  create-resource-queue:  create-demo-resource-queue
+  delete-resource-queue:  delete-demo-resource-queue
+  change-resource-status-queue: change-demo-resource-status-queue
+
+keycloak:
+  server-url: http://172.20.136.100:30282
+  realm: saas-erp
+  client-id: saas-client
+  client-secret: APHalzvUVsfz9Jffe5ZAZ1XImFwv5a8K
+  openIdConnectUrl: ${keycloak.server-url}/realms/${keycloak.realm}/.well-known/openid-configuration
+
+
+
+
+
+
