@@ -4,6 +4,5 @@ public enum BudgetPlanStatus {
     DRAFT,
     SUBMITTED,
     APPROVED,
-    REJECTED,
-    CLOSED
+    REJECTED
 }
