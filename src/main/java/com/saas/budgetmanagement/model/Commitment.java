@@ -20,11 +20,12 @@ import java.util.UUID;
     name = "commitments",
     uniqueConstraints = {
         @UniqueConstraint(
-            name = "uq_commitment_source",
-            columnNames = {"sourceService", "sourceReferenceId"}
+            name = "uq_commitment_event",
+            columnNames = {"sourceService", "sourceEventId"}
         )
     },
     indexes = {
+        @Index(name = "idx_commitment_source_ref", columnList = "sourceService, sourceReferenceId"),
         @Index(name = "idx_commitment_coa", columnList = "accountId, costCenterId"),
         @Index(name = "idx_commitment_status", columnList = "status")
     }
@@ -39,6 +40,9 @@ public class Commitment extends Base {
 
     @Column(nullable = false)
     private String sourceReferenceId;
+
+    @Column(nullable = false)
+    private String sourceEventId;
 
     // --- COA segment references (external_id values from the ref_* cache tables, not live FKs) ---
     @Column(nullable = false)
