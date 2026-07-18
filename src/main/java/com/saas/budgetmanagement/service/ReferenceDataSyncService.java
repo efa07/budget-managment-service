@@ -1,16 +1,17 @@
 package com.saas.budgetmanagement.service;
 
-import com.saas.budgetmanagement.dto.eventDto.inbound.AccountingPeriodSyncEvent;
-import com.saas.budgetmanagement.dto.eventDto.inbound.CoaSyncEvent;
-import com.saas.budgetmanagement.dto.eventDto.inbound.FiscalYearSyncEvent;
+import com.saas.budgetmanagement.dto.eventDto.inbound.*;
+
+
+import java.util.UUID;
 
 public interface ReferenceDataSyncService {
 
-    void syncFiscalYear(FiscalYearSyncEvent event);
+    void syncFiscalYear(UUID tenantId, FiscalYearSyncEvent event);
 
-    void syncAccountingPeriod(AccountingPeriodSyncEvent event);
+    void syncAccountingPeriod(UUID tenantId, AccountingPeriodSyncEvent event);
 
-    void syncCoaSegment(CoaSyncEvent event);
+    void syncCoaSegment(UUID tenantId, CoaSyncEvent event);
 
-    void reconcileAll();
+    void reconcileAll(UUID tenantId);
 }

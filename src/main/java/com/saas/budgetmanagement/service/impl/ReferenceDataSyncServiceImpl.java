@@ -1,14 +1,12 @@
 package com.saas.budgetmanagement.service.impl;
 
 import com.saas.budgetmanagement.client.FinanceAdministrationClient;
-import com.saas.budgetmanagement.dto.eventDto.inbound.AccountingPeriodSyncEvent;
-import com.saas.budgetmanagement.dto.eventDto.inbound.CoaSyncEvent;
-import com.saas.budgetmanagement.dto.eventDto.inbound.FiscalYearSyncEvent;
-import com.saas.budgetmanagement.dto.clientDto.FiscalYearClientDto;
+import com.saas.budgetmanagement.dto.eventDto.inbound.*;
+
+import com.saas.budgetmanagement.dto.clientDto.*;
 import com.saas.budgetmanagement.model.refcache.*;
 import com.saas.budgetmanagement.repository.refcache.*;
 import com.saas.budgetmanagement.service.ReferenceDataSyncService;
-import com.saas.budgetmanagement.utility.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -30,13 +28,10 @@ public class ReferenceDataSyncServiceImpl implements ReferenceDataSyncService {
     private final RefFundSourceRepository fundSourceRepository;
     private final RefProjectRepository projectRepository;
     private final FinanceAdministrationClient financeAdministrationClient;
-    private final SecurityUtil securityUtil;
 
     @Override
     @Transactional
-    public void syncFiscalYear(FiscalYearSyncEvent event) {
-        UUID tenantId = UUID.fromString(securityUtil.getTenantId());
-
+    public void syncFiscalYear(UUID tenantId, FiscalYearSyncEvent event) {
         RefFiscalYear entity = fiscalYearRepository
                 .findByTenantIdAndExternalId(tenantId, event.getExternalId())
                 .orElseGet(RefFiscalYear::new);
@@ -52,124 +47,121 @@ public class ReferenceDataSyncServiceImpl implements ReferenceDataSyncService {
         fiscalYearRepository.save(entity);
     }
 
-    @Override
-    @Transactional
-    public void syncAccountingPeriod(AccountingPeriodSyncEvent event) {
-        UUID tenantId = UUID.fromString(securityUtil.getTenantId());
+@Override
+@Transactional
+public void syncAccountingPeriod(UUID tenantId, AccountingPeriodSyncEvent event) {
+    RefAccountingPeriod entity = accountingPeriodRepository
+            .findByTenantIdAndExternalId(tenantId, event.getExternalId())
+            .orElseGet(RefAccountingPeriod::new);
 
-        RefAccountingPeriod entity = accountingPeriodRepository
-                .findByTenantIdAndExternalId(tenantId, event.getExternalId())
-                .orElseGet(RefAccountingPeriod::new);
+    entity.setTenantId(tenantId);
+    entity.setExternalId(event.getExternalId());
+    entity.setFiscalYearExternalId(event.getFiscalYearExternalId());
+    entity.setPeriodNumber(event.getPeriodNumber());
+    entity.setPeriodName(event.getPeriodName());
+    entity.setStartDate(event.getStartDate());
+    entity.setEndDate(event.getEndDate());
+    entity.setOpen(event.isOpen());
+    entity.setSyncedAt(LocalDateTime.now());
 
-        entity.setTenantId(tenantId);
-        entity.setExternalId(event.getExternalId());
-        entity.setFiscalYearExternalId(event.getFiscalYearExternalId());
-        entity.setPeriodNumber(event.getPeriodNumber());
-        entity.setPeriodName(event.getPeriodName());
-        entity.setStartDate(event.getStartDate());
-        entity.setEndDate(event.getEndDate());
-        entity.setOpen(event.isOpen());
-        entity.setSyncedAt(LocalDateTime.now());
-
-        accountingPeriodRepository.save(entity);
-    }
-
-    @Override
-    @Transactional
-    public void syncCoaSegment(CoaSyncEvent event) {
-        UUID tenantId = UUID.fromString(securityUtil.getTenantId());
-
-        switch (event.getSegmentType()) {
-            case ACCOUNT -> {
-                RefCoaAccount entity = coaAccountRepository
-                        .findByTenantIdAndExternalId(tenantId, event.getExternalId())
-                        .orElseGet(RefCoaAccount::new);
-                entity.setTenantId(tenantId);
-                entity.setExternalId(event.getExternalId());
-                entity.setAccountCode(event.getCode());
-                entity.setAccountName(event.getName());
-                entity.setAccountType(event.getAccountType());
-                entity.setActive(event.isActive());
-                entity.setSyncedAt(LocalDateTime.now());
-                coaAccountRepository.save(entity);
-            }
-            case COST_CENTER -> {
-                RefCostCenter entity = costCenterRepository
-                        .findByTenantIdAndExternalId(tenantId, event.getExternalId())
-                        .orElseGet(RefCostCenter::new);
-                entity.setTenantId(tenantId);
-                entity.setExternalId(event.getExternalId());
-                entity.setCode(event.getCode());
-                entity.setName(event.getName());
-                entity.setActive(event.isActive());
-                entity.setSyncedAt(LocalDateTime.now());
-                costCenterRepository.save(entity);
-            }
-            case DEPARTMENT -> {
-                RefDepartment entity = departmentRepository
-                        .findByTenantIdAndExternalId(tenantId, event.getExternalId())
-                        .orElseGet(RefDepartment::new);
-                entity.setTenantId(tenantId);
-                entity.setExternalId(event.getExternalId());
-                entity.setCode(event.getCode());
-                entity.setName(event.getName());
-                entity.setActive(event.isActive());
-                entity.setSyncedAt(LocalDateTime.now());
-                departmentRepository.save(entity);
-            }
-            case FUND_SOURCE -> {
-                RefFundSource entity = fundSourceRepository
-                        .findByTenantIdAndExternalId(tenantId, event.getExternalId())
-                        .orElseGet(RefFundSource::new);
-                entity.setTenantId(tenantId);
-                entity.setExternalId(event.getExternalId());
-                entity.setCode(event.getCode());
-                entity.setName(event.getName());
-                entity.setActive(event.isActive());
-                entity.setSyncedAt(LocalDateTime.now());
-                fundSourceRepository.save(entity);
-            }
-            case PROJECT -> {
-                RefProject entity = projectRepository
-                        .findByTenantIdAndExternalId(tenantId, event.getExternalId())
-                        .orElseGet(RefProject::new);
-                entity.setTenantId(tenantId);
-                entity.setExternalId(event.getExternalId());
-                entity.setCode(event.getCode());
-                entity.setName(event.getName());
-                entity.setActive(event.isActive());
-                entity.setSyncedAt(LocalDateTime.now());
-                projectRepository.save(entity);
-            }
-            default -> log.warn("Unhandled COA segment type: {}", event.getSegmentType());
-        }
-    }
+    accountingPeriodRepository.save(entity);
+}
 
 @Override
-public void reconcileAll() {
-    UUID tenantId = UUID.fromString(securityUtil.getTenantId());
-    log.info("Starting manual reference-data reconciliation for tenant {}", tenantId);
-
-    reconcileFiscalYears(tenantId);
-    reconcileAccountingPeriods(tenantId);
-    reconcileCoaSegments(tenantId);
-
-    log.info("Completed manual reference-data reconciliation for tenant {}", tenantId);
-}
-
-private void reconcileFiscalYears(UUID tenantId) {
-    List<FiscalYearClientDto> fiscalYears = financeAdministrationClient.getAllFiscalYears(tenantId);
-    for (FiscalYearClientDto dto : fiscalYears) {
-        FiscalYearSyncEvent event = new FiscalYearSyncEvent();
-        event.setExternalId(dto.getExternalId());
-        event.setName(dto.getName());
-        event.setStartDate(dto.getStartDate());
-        event.setEndDate(dto.getEndDate());
-        event.setOpen(dto.isOpen());
-        syncFiscalYear(event);
+@Transactional
+public void syncCoaSegment(UUID tenantId, CoaSyncEvent event) {
+    switch (event.getSegmentType()) {
+        case ACCOUNT -> {
+            RefCoaAccount entity = coaAccountRepository
+                    .findByTenantIdAndExternalId(tenantId, event.getExternalId())
+                    .orElseGet(RefCoaAccount::new);
+            entity.setTenantId(tenantId);
+            entity.setExternalId(event.getExternalId());
+            entity.setAccountCode(event.getCode());
+            entity.setAccountName(event.getName());
+            entity.setAccountType(event.getAccountType());
+            entity.setActive(event.isActive());
+            entity.setSyncedAt(LocalDateTime.now());
+            coaAccountRepository.save(entity);
+        }
+        case COST_CENTER -> {
+            RefCostCenter entity = costCenterRepository
+                    .findByTenantIdAndExternalId(tenantId, event.getExternalId())
+                    .orElseGet(RefCostCenter::new);
+            entity.setTenantId(tenantId);
+            entity.setExternalId(event.getExternalId());
+            entity.setCode(event.getCode());
+            entity.setName(event.getName());
+            entity.setActive(event.isActive());
+            entity.setSyncedAt(LocalDateTime.now());
+            costCenterRepository.save(entity);
+        }
+        case DEPARTMENT -> {
+            RefDepartment entity = departmentRepository
+                    .findByTenantIdAndExternalId(tenantId, event.getExternalId())
+                    .orElseGet(RefDepartment::new);
+            entity.setTenantId(tenantId);
+            entity.setExternalId(event.getExternalId());
+            entity.setCode(event.getCode());
+            entity.setName(event.getName());
+            entity.setActive(event.isActive());
+            entity.setSyncedAt(LocalDateTime.now());
+            departmentRepository.save(entity);
+        }
+        case FUND_SOURCE -> {
+            RefFundSource entity = fundSourceRepository
+                    .findByTenantIdAndExternalId(tenantId, event.getExternalId())
+                    .orElseGet(RefFundSource::new);
+            entity.setTenantId(tenantId);
+            entity.setExternalId(event.getExternalId());
+            entity.setCode(event.getCode());
+            entity.setName(event.getName());
+            entity.setActive(event.isActive());
+            entity.setSyncedAt(LocalDateTime.now());
+            fundSourceRepository.save(entity);
+        }
+        case PROJECT -> {
+            RefProject entity = projectRepository
+                    .findByTenantIdAndExternalId(tenantId, event.getExternalId())
+                    .orElseGet(RefProject::new);
+            entity.setTenantId(tenantId);
+            entity.setExternalId(event.getExternalId());
+            entity.setCode(event.getCode());
+            entity.setName(event.getName());
+            entity.setActive(event.isActive());
+            entity.setSyncedAt(LocalDateTime.now());
+            projectRepository.save(entity);
+        }
+        default -> log.warn("Unhandled COA segment type: {}", event.getSegmentType());
     }
-    log.info("Reconciled {} fiscal year(s) for tenant {}", fiscalYears.size(), tenantId);
 }
+
+    
+    @Override
+    public void reconcileAll(UUID tenantId) {
+        log.info("Starting manual reference-data reconciliation for tenant {}", tenantId);
+
+        reconcileFiscalYears(tenantId);
+        reconcileAccountingPeriods(tenantId);
+        reconcileCoaSegments(tenantId);
+
+        log.info("Completed manual reference-data reconciliation for tenant {}", tenantId);
+    }
+
+
+    private void reconcileFiscalYears(UUID tenantId) {
+        List<FiscalYearClientDto> fiscalYears = financeAdministrationClient.getAllFiscalYears(tenantId);
+        for (FiscalYearClientDto dto : fiscalYears) {
+            FiscalYearSyncEvent event = new FiscalYearSyncEvent();
+            event.setExternalId(dto.getExternalId());
+            event.setName(dto.getName());
+            event.setStartDate(dto.getStartDate());
+            event.setEndDate(dto.getEndDate());
+            event.setOpen(dto.isOpen());
+            syncFiscalYear(tenantId, event);   // ← tenantId now passed through explicitly
+        }
+        log.info("Reconciled {} fiscal year(s) for tenant {}", fiscalYears.size(), tenantId);
+    }
 
 private void reconcileAccountingPeriods(UUID tenantId) {
     List<AccountingPeriodClientDto> periods = financeAdministrationClient.getAllAccountingPeriods(tenantId);
@@ -182,7 +174,7 @@ private void reconcileAccountingPeriods(UUID tenantId) {
         event.setStartDate(dto.getStartDate());
         event.setEndDate(dto.getEndDate());
         event.setOpen(dto.isOpen());
-        syncAccountingPeriod(event);
+        syncAccountingPeriod(tenantId,event);
     }
     log.info("Reconciled {} accounting period(s) for tenant {}", periods.size(), tenantId);
 }
@@ -210,7 +202,7 @@ private void reconcileSegmentType(UUID tenantId, CoaSyncEvent.CoaSegmentType seg
         event.setName(dto.getName());
         event.setAccountType(dto.getAccountType());
         event.setActive(dto.isActive());
-        syncCoaSegment(event);
+        syncCoaSegment(tenantId,event);
     }
     log.info("Reconciled {} {} record(s) for tenant {}", segments.size(), segmentType, tenantId);
-}
+}}
