@@ -1,5 +1,7 @@
 package com.saas.budgetmanagement.service.impl;
 
+import com.saas.budgetmanagement.dto.common.CoaSegmentReference;
+import com.saas.budgetmanagement.dto.requestDto.BudgetLineItemRequest;
 import com.saas.budgetmanagement.dto.requestDto.CreateBudgetPlanRequest;
 import com.saas.budgetmanagement.dto.requestDto.UpdateBudgetPlanRequest;
 import com.saas.budgetmanagement.dto.requestDto.ApprovalDecisionRequest;
@@ -18,6 +20,7 @@ import com.saas.budgetmanagement.repository.refcache.RefFiscalYearRepository;
 import com.saas.budgetmanagement.service.BudgetEventPublisherService;
 import com.saas.budgetmanagement.service.BudgetPlanService;
 import com.saas.budgetmanagement.utility.CoaSegmentDisplayResolver;
+import com.saas.budgetmanagement.utility.CoaSegmentValidator;
 import com.saas.budgetmanagement.utility.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -46,6 +49,7 @@ public class BudgetPlanServiceImpl implements BudgetPlanService {
     private final BudgetPlanMapper budgetPlanMapper;
     private final SecurityUtil securityUtil;
     private final CoaSegmentDisplayResolver displayResolver;
+    private final CoaSegmentValidator coaSegmentValidator;
 
     @Override
     @Transactional
@@ -58,6 +62,10 @@ public class BudgetPlanServiceImpl implements BudgetPlanService {
 
         if (!fiscalYear.isOpen()) {
             throw new InvalidBudgetPlanStateException("Cannot create a budget plan against a closed fiscal year");
+        }
+
+        for (BudgetLineItemRequest lineRequest : request.getLines()) {
+            coaSegmentValidator.validate(tenantId, toScope(lineRequest));
         }
 
         BudgetPlan plan = new BudgetPlan();
@@ -85,11 +93,15 @@ public class BudgetPlanServiceImpl implements BudgetPlanService {
     @Override
     @Transactional
     public BudgetPlanResponse update(UUID id, UpdateBudgetPlanRequest request) {
-        UUID tenantId = UUID.fromString(securityUtil.getTenantId());
         BudgetPlan plan = getOwnedPlanOrThrow(id);
 
         if (plan.getStatus() != BudgetPlanStatus.DRAFT) {
             throw new InvalidBudgetPlanStateException("Only DRAFT plans can be edited. Current status: " + plan.getStatus());
+        }
+
+        UUID tenantId = UUID.fromString(securityUtil.getTenantId());
+        for (BudgetLineItemRequest lineRequest : request.getLines()) {
+            coaSegmentValidator.validate(tenantId, toScope(lineRequest));
         }
 
         plan.setRequestedAmount(request.getRequestedAmount());
@@ -238,4 +250,16 @@ public class BudgetPlanServiceImpl implements BudgetPlanService {
     private Set<UUID> collectLineIds(List<BudgetLineResponse> lines, java.util.function.Function<BudgetLineResponse, UUID> extractor) {
         return lines.stream().map(extractor).filter(java.util.Objects::nonNull).collect(Collectors.toSet());
     }
+
+    private CoaSegmentReference toScope(BudgetLineItemRequest lineRequest) {
+        return new CoaSegmentReference(
+                lineRequest.getAccountId(),
+                lineRequest.getCostCenterId(),
+                lineRequest.getDepartmentId(),
+                lineRequest.getFundSourceId(),
+                lineRequest.getProjectId()
+        );
+    }
+
+    
 }

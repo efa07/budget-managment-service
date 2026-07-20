@@ -1,8 +1,9 @@
 package com.saas.budgetmanagement.service;
 
 import com.saas.budgetmanagement.dto.requestDto.BudgetAvailabilityCheckRequest;
-import java.util.UUID;
+import com.saas.budgetmanagement.dto.responseDto.BudgetAvailabilityCheckResponse;
 
 public interface BudgetAvailabilityService {
-    void checkAvailability(UUID tenantId, BudgetAvailabilityCheckRequest request);
+
+    BudgetAvailabilityCheckResponse checkAvailability(BudgetAvailabilityCheckRequest request);
 }
