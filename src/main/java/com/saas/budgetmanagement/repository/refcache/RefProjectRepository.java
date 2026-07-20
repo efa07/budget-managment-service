@@ -16,4 +16,6 @@ public interface RefProjectRepository extends JpaRepository<RefProject, UUID> {
     Optional<RefProject> findByTenantIdAndExternalIdAndActiveTrue(UUID tenantId, UUID externalId);
 
     List<RefProject> findByTenantIdAndActiveTrue(UUID tenantId);
+
+    List<RefProject> findByTenantIdAndExternalIdIn(UUID tenantId, List<UUID> externalIds);
 }

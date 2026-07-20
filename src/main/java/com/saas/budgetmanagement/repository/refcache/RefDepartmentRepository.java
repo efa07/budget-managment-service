@@ -16,4 +16,6 @@ public interface RefDepartmentRepository extends JpaRepository<RefDepartment, UU
     Optional<RefDepartment> findByTenantIdAndExternalIdAndActiveTrue(UUID tenantId, UUID externalId);
 
     List<RefDepartment> findByTenantIdAndActiveTrue(UUID tenantId);
+
+    List<RefDepartment> findByTenantIdAndExternalIdIn(UUID tenantId, List<UUID> externalIds);
 }

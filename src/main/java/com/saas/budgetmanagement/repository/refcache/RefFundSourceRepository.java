@@ -16,4 +16,6 @@ public interface RefFundSourceRepository extends JpaRepository<RefFundSource, UU
     Optional<RefFundSource> findByTenantIdAndExternalIdAndActiveTrue(UUID tenantId, UUID externalId);
 
     List<RefFundSource> findByTenantIdAndActiveTrue(UUID tenantId);
+
+    List<RefFundSource> findByTenantIdAndExternalIdIn(UUID tenantId, List<UUID> externalIds);
 }

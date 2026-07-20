@@ -3,6 +3,7 @@ package com.saas.budgetmanagement.service.impl;
 import com.saas.budgetmanagement.dto.requestDto.CreateBudgetPlanRequest;
 import com.saas.budgetmanagement.dto.requestDto.UpdateBudgetPlanRequest;
 import com.saas.budgetmanagement.dto.requestDto.ApprovalDecisionRequest;
+import com.saas.budgetmanagement.dto.responseDto.BudgetLineResponse;
 import com.saas.budgetmanagement.dto.responseDto.BudgetPlanResponse;
 import com.saas.budgetmanagement.enums.BudgetPlanStatus;
 import com.saas.budgetmanagement.exception.BudgetNotFoundException;
@@ -16,6 +17,7 @@ import com.saas.budgetmanagement.repository.BudgetPlanRepository;
 import com.saas.budgetmanagement.repository.refcache.RefFiscalYearRepository;
 import com.saas.budgetmanagement.service.BudgetEventPublisherService;
 import com.saas.budgetmanagement.service.BudgetPlanService;
+import com.saas.budgetmanagement.utility.CoaSegmentDisplayResolver;
 import com.saas.budgetmanagement.utility.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -24,6 +26,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -41,6 +45,7 @@ public class BudgetPlanServiceImpl implements BudgetPlanService {
     private final BudgetEventPublisherService eventPublisherService;
     private final BudgetPlanMapper budgetPlanMapper;
     private final SecurityUtil securityUtil;
+    private final CoaSegmentDisplayResolver displayResolver;
 
     @Override
     @Transactional
@@ -59,7 +64,7 @@ public class BudgetPlanServiceImpl implements BudgetPlanService {
         plan.setFiscalYearId(request.getFiscalYearId());
         plan.setRequestedAmount(request.getRequestedAmount());
         plan.setStatus(BudgetPlanStatus.DRAFT);
-        plan.setRequestedBy(securityUtil.getUserId());
+        plan.setRequestedBy(UUID.fromString(securityUtil.getUserId()));
 
         BudgetPlan saved = budgetPlanRepository.save(plan);
 
@@ -74,12 +79,13 @@ public class BudgetPlanServiceImpl implements BudgetPlanService {
                 budgetPlanMapper.toCreatedEvent(saved)
         );
 
-        return budgetPlanMapper.toResponse(saved, lines);
+        return toEnrichedResponse(tenantId, saved, lines);
     }
 
     @Override
     @Transactional
     public BudgetPlanResponse update(UUID id, UpdateBudgetPlanRequest request) {
+        UUID tenantId = UUID.fromString(securityUtil.getTenantId());
         BudgetPlan plan = getOwnedPlanOrThrow(id);
 
         if (plan.getStatus() != BudgetPlanStatus.DRAFT) {
@@ -89,20 +95,21 @@ public class BudgetPlanServiceImpl implements BudgetPlanService {
         plan.setRequestedAmount(request.getRequestedAmount());
         BudgetPlan saved = budgetPlanRepository.save(plan);
 
-        budgetLineRepository.deleteByTenantIdAndBudgetPlanId(UUID.fromString(securityUtil.getTenantId()), id);
+        budgetLineRepository.deleteByTenantIdAndBudgetPlanId(tenantId, id);
         List<BudgetLine> lines = request.getLines().stream()
                 .map(lineRequest -> budgetPlanMapper.toBudgetLine(lineRequest, saved.getId()))
                 .collect(Collectors.toList());
         budgetLineRepository.saveAll(lines);
 
-        return budgetPlanMapper.toResponse(saved, lines);
+        return toEnrichedResponse(tenantId, saved, lines);
     }
 
     @Override
     public BudgetPlanResponse getById(UUID id) {
+        UUID tenantId = UUID.fromString(securityUtil.getTenantId());
         BudgetPlan plan = getOwnedPlanOrThrow(id);
-        List<BudgetLine> lines = budgetLineRepository.findByTenantIdAndBudgetPlanId(UUID.fromString(securityUtil.getTenantId()), id);
-        return budgetPlanMapper.toResponse(plan, lines);
+        List<BudgetLine> lines = budgetLineRepository.findByTenantIdAndBudgetPlanId(tenantId, id);
+        return toEnrichedResponse(tenantId, plan, lines);
     }
 
     @Override
@@ -118,12 +125,13 @@ public class BudgetPlanServiceImpl implements BudgetPlanService {
             plans = budgetPlanRepository.findByTenantId(tenantId, pageable);
         }
 
-        return plans.map(plan -> budgetPlanMapper.toResponse(plan, List.of()));
+        return plans.map(plan -> toEnrichedResponse(tenantId, plan, List.of()));
     }
 
     @Override
     @Transactional
     public BudgetPlanResponse submit(UUID id) {
+        UUID tenantId = UUID.fromString(securityUtil.getTenantId());
         BudgetPlan plan = getOwnedPlanOrThrow(id);
 
         if (plan.getStatus() != BudgetPlanStatus.DRAFT) {
@@ -133,12 +141,13 @@ public class BudgetPlanServiceImpl implements BudgetPlanService {
         plan.setStatus(BudgetPlanStatus.SUBMITTED);
         BudgetPlan saved = budgetPlanRepository.save(plan);
 
-        return budgetPlanMapper.toResponse(saved, List.of());
+        return toEnrichedResponse(tenantId, saved, List.of());
     }
 
     @Override
     @Transactional
     public BudgetPlanResponse approve(UUID id, ApprovalDecisionRequest request) {
+        UUID tenantId = UUID.fromString(securityUtil.getTenantId());
         BudgetPlan plan = getOwnedPlanOrThrow(id);
 
         if (plan.getStatus() != BudgetPlanStatus.SUBMITTED) {
@@ -146,7 +155,7 @@ public class BudgetPlanServiceImpl implements BudgetPlanService {
         }
 
         plan.setStatus(BudgetPlanStatus.APPROVED);
-        plan.setApprovedBy(securityUtil.getUserId());
+        plan.setApprovedBy(UUID.fromString(securityUtil.getUserId()));
         BudgetPlan saved = budgetPlanRepository.save(plan);
 
         eventPublisherService.publish(
@@ -155,12 +164,13 @@ public class BudgetPlanServiceImpl implements BudgetPlanService {
                 budgetPlanMapper.toApprovedEvent(saved)
         );
 
-        return budgetPlanMapper.toResponse(saved, List.of());
+        return toEnrichedResponse(tenantId, saved, List.of());
     }
 
     @Override
     @Transactional
     public BudgetPlanResponse reject(UUID id, ApprovalDecisionRequest request) {
+        UUID tenantId = UUID.fromString(securityUtil.getTenantId());
         BudgetPlan plan = getOwnedPlanOrThrow(id);
 
         if (plan.getStatus() != BudgetPlanStatus.SUBMITTED) {
@@ -177,11 +187,55 @@ public class BudgetPlanServiceImpl implements BudgetPlanService {
                 budgetPlanMapper.toRejectedEvent(saved)
         );
 
-        return budgetPlanMapper.toResponse(saved, List.of());
+        return toEnrichedResponse(tenantId, saved, List.of());
     }
 
     private BudgetPlan getOwnedPlanOrThrow(UUID id) {
         return budgetPlanRepository.findByTenantIdAndId(UUID.fromString(securityUtil.getTenantId()), id)
                 .orElseThrow(() -> new BudgetNotFoundException("Budget plan not found: " + id));
+    }
+
+    private BudgetPlanResponse toEnrichedResponse(UUID tenantId, BudgetPlan plan, List<BudgetLine> lines) {
+        BudgetPlanResponse response = budgetPlanMapper.toResponse(plan, lines);
+        enrichPlanResponse(tenantId, response);
+        return response;
+    }
+
+    private void enrichPlanResponse(UUID tenantId, BudgetPlanResponse response) {
+        if (response.getFiscalYearId() != null) {
+            Map<UUID, String> fiscalYearNames = displayResolver.resolveFiscalYearNames(tenantId, Set.of(response.getFiscalYearId()));
+            response.setFiscalYearName(fiscalYearNames.get(response.getFiscalYearId()));
+        }
+        enrichLineResponses(tenantId, response.getLines());
+    }
+
+    private void enrichLineResponses(UUID tenantId, List<BudgetLineResponse> lines) {
+        if (lines == null || lines.isEmpty()) {
+            return;
+        }
+
+        Set<UUID> accountIds = collectLineIds(lines, BudgetLineResponse::getAccountId);
+        Set<UUID> costCenterIds = collectLineIds(lines, BudgetLineResponse::getCostCenterId);
+        Set<UUID> departmentIds = collectLineIds(lines, BudgetLineResponse::getDepartmentId);
+        Set<UUID> fundSourceIds = collectLineIds(lines, BudgetLineResponse::getFundSourceId);
+        Set<UUID> projectIds = collectLineIds(lines, BudgetLineResponse::getProjectId);
+
+        Map<UUID, String> accountNames = displayResolver.resolveAccountNames(tenantId, accountIds);
+        Map<UUID, String> costCenterNames = displayResolver.resolveCostCenterNames(tenantId, costCenterIds);
+        Map<UUID, String> departmentNames = displayResolver.resolveDepartmentNames(tenantId, departmentIds);
+        Map<UUID, String> fundSourceNames = displayResolver.resolveFundSourceNames(tenantId, fundSourceIds);
+        Map<UUID, String> projectNames = displayResolver.resolveProjectNames(tenantId, projectIds);
+
+        for (BudgetLineResponse line : lines) {
+            line.setAccountName(accountNames.get(line.getAccountId()));
+            line.setCostCenterName(costCenterNames.get(line.getCostCenterId()));
+            line.setDepartmentName(departmentNames.get(line.getDepartmentId()));
+            line.setFundSourceName(fundSourceNames.get(line.getFundSourceId()));
+            line.setProjectName(projectNames.get(line.getProjectId()));
+        }
+    }
+
+    private Set<UUID> collectLineIds(List<BudgetLineResponse> lines, java.util.function.Function<BudgetLineResponse, UUID> extractor) {
+        return lines.stream().map(extractor).filter(java.util.Objects::nonNull).collect(Collectors.toSet());
     }
 }

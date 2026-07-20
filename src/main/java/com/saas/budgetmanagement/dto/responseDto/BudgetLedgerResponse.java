@@ -15,10 +15,19 @@ public class BudgetLedgerResponse extends BaseResponse {
     private UUID periodId;
 
     private UUID accountId;
+    private String accountName;
+
     private UUID costCenterId;
+    private String costCenterName;
+
     private UUID departmentId;
+    private String departmentName;
+
     private UUID fundSourceId;
+    private String fundSourceName;
+
     private UUID projectId;
+    private String projectName;
 
     private BigDecimal allocatedAmount;
     private BigDecimal committedAmount;

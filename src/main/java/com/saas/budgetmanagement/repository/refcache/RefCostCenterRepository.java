@@ -16,4 +16,6 @@ public interface RefCostCenterRepository extends JpaRepository<RefCostCenter, UU
     Optional<RefCostCenter> findByTenantIdAndExternalIdAndActiveTrue(UUID tenantId, UUID externalId);
 
     List<RefCostCenter> findByTenantIdAndActiveTrue(UUID tenantId);
+
+    List<RefCostCenter> findByTenantIdAndExternalIdIn(UUID tenantId, List<UUID> externalIds);
 }

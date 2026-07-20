@@ -16,4 +16,6 @@ public interface RefCoaAccountRepository extends JpaRepository<RefCoaAccount, UU
     Optional<RefCoaAccount> findByTenantIdAndExternalIdAndActiveTrue(UUID tenantId, UUID externalId);
 
     List<RefCoaAccount> findByTenantIdAndActiveTrue(UUID tenantId);
+
+    List<RefCoaAccount> findByTenantIdAndExternalIdIn(UUID tenantId, List<UUID> externalIds);
 }
