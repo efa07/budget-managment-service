@@ -14,16 +14,16 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class OpenApiConfig {
 
-        @Value("${keycloak.openIdConnectUrl}")
+        @Value("${keycloak.openIdConnectUrl:http://localhost:8080/realms/master/.well-known/openid-configuration}")
         private String keycloakOpenIdConnectUrl;
 
-        @Value("${api-gateway-base-url}")
+        @Value("${api-gateway-base-url:http://localhost:9192}")
         private String apiGatewayBaseUrl;
 
-        @Value("${server.port}")
+        @Value("${server.port:9192}")
         private String serverPort;
 
-        @Value("${spring.application.name}")
+        @Value("${spring.application.name:budget-management-service}")
         private String applicationName;
 
         @Bean

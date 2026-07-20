@@ -30,7 +30,7 @@ public class OutboxRelayScheduler {
     private final OutboxEventRepository outboxEventRepository;
     private final RabbitTemplate rabbitTemplate;
 
-    @Value("${budget-management.rabbitmq.exchange}")
+    @Value("${budget-management.rabbitmq.exchange:budget-management-exchange}")
     private String exchangeName;
 
     @Scheduled(fixedDelayString = "${budget-management.outbox.relay-interval-ms:5000}")

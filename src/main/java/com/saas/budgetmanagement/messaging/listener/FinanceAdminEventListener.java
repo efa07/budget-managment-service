@@ -25,7 +25,7 @@ public class FinanceAdminEventListener {
     private final ReferenceDataSyncService referenceDataSyncService;
     private final ObjectMapper objectMapper;
 
-    @RabbitListener(queues = "${budget-management.rabbitmq.queues.finance-admin-sync}")
+    @RabbitListener(queues = "${budget-management.rabbitmq.queues.finance-admin-sync:finance-admin-sync-queue}")
     public void onFinanceAdminEvent(String messageBody,
                                      Channel channel,
                                      @Header(AmqpHeaders.DELIVERY_TAG) long deliveryTag) throws IOException {

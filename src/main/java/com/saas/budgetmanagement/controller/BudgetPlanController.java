@@ -32,7 +32,7 @@ public class BudgetPlanController {
         if (!resolvedTenantId.equals(tenantId)) {
             throw new AccessDeniedException("Tenant mismatch");
         }
-        budgetPlanService.createBudgetPlan(resolvedTenantId, request);
+        budgetPlanService.create(request);
         return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
     }
 }

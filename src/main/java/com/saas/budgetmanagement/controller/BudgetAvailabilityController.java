@@ -32,7 +32,7 @@ public class BudgetAvailabilityController {
         if (!resolvedTenantId.equals(tenantId)) {
             throw new AccessDeniedException("Tenant mismatch");
         }
-        budgetAvailabilityService.checkAvailability(resolvedTenantId, request);
+        budgetAvailabilityService.checkAvailability(request);
         return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
     }
 }

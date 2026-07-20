@@ -30,7 +30,7 @@ public class BudgetLedgerController {
         if (!resolvedTenantId.equals(tenantId)) {
             throw new AccessDeniedException("Tenant mismatch");
         }
-        budgetLedgerService.recordLedgerEntry(resolvedTenantId);
+        budgetLedgerService.getLedger(resolvedTenantId, null, null, null);
         return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
     }
 }
