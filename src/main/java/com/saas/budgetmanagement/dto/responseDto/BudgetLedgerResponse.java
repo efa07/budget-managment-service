@@ -1,5 +1,7 @@
 package com.saas.budgetmanagement.dto.responseDto;
 
+import com.saas.budgetmanagement.utility.CoaSegmentDisplayAware;
+
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -7,9 +9,10 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class BudgetLedgerResponse extends BaseResponse {
+public class BudgetLedgerResponse extends BaseResponse implements CoaSegmentDisplayAware{
 
     private UUID fiscalYearId;
     private UUID periodId;

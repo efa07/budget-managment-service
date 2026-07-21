@@ -1,5 +1,7 @@
 package com.saas.budgetmanagement.dto.responseDto;
 
+import com.saas.budgetmanagement.utility.CoaSegmentDisplayAware;
+
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -9,7 +11,7 @@ import java.util.UUID;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class BudgetAllocationResponse extends BaseResponse {
+public class BudgetAllocationResponse extends BaseResponse implements CoaSegmentDisplayAware {
 
     private UUID budgetPlanId;
     private UUID budgetLineId;

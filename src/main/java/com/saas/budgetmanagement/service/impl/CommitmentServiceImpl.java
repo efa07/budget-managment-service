@@ -25,12 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
 import java.util.UUID;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -131,7 +126,7 @@ public class CommitmentServiceImpl implements CommitmentService {
                 commitmentId, saved.getId(), adjustmentAmount, reason);
 
         CommitmentResponse response = commitmentMapper.toResponse(saved);
-        enrichCommitmentResponses(tenantId, List.of(response));
+        displayResolver.enrichCoaSegments(tenantId, List.of(response));
         return response;
     }
 
@@ -144,38 +139,8 @@ public class CommitmentServiceImpl implements CommitmentService {
                 .findByTenantIdAndSourceServiceAndStatus(tenantId, sourceService, commitmentStatus, pageable)
                 .map(commitmentMapper::toResponse);
 
-        enrichCommitmentResponses(tenantId, page.getContent());
+        displayResolver.enrichCoaSegments(tenantId, page.getContent());
         return page;
-    }
-
-    private void enrichCommitmentResponses(UUID tenantId, List<CommitmentResponse> responses) {
-        if (responses.isEmpty()) {
-            return;
-        }
-
-        Set<UUID> accountIds = collectIds(responses, response -> response.getAccountId());
-        Set<UUID> costCenterIds = collectIds(responses, response -> response.getCostCenterId());
-        Set<UUID> departmentIds = collectIds(responses, response -> response.getDepartmentId());
-        Set<UUID> fundSourceIds = collectIds(responses, response -> response.getFundSourceId());
-        Set<UUID> projectIds = collectIds(responses, response -> response.getProjectId());
-
-        Map<UUID, String> accountNames = displayResolver.resolveAccountNames(tenantId, accountIds);
-        Map<UUID, String> costCenterNames = displayResolver.resolveCostCenterNames(tenantId, costCenterIds);
-        Map<UUID, String> departmentNames = displayResolver.resolveDepartmentNames(tenantId, departmentIds);
-        Map<UUID, String> fundSourceNames = displayResolver.resolveFundSourceNames(tenantId, fundSourceIds);
-        Map<UUID, String> projectNames = displayResolver.resolveProjectNames(tenantId, projectIds);
-
-        for (CommitmentResponse response : responses) {
-            response.setAccountName(accountNames.get(response.getAccountId()));
-            response.setCostCenterName(costCenterNames.get(response.getCostCenterId()));
-            response.setDepartmentName(departmentNames.get(response.getDepartmentId()));
-            response.setFundSourceName(fundSourceNames.get(response.getFundSourceId()));
-            response.setProjectName(projectNames.get(response.getProjectId()));
-        }
-    }
-
-    private Set<UUID> collectIds(List<CommitmentResponse> responses, Function<CommitmentResponse, UUID> extractor) {
-        return responses.stream().map(extractor).filter(Objects::nonNull).collect(Collectors.toSet());
     }
 
     private CommitmentStatus mapActionToStatus(CommitmentSourceEvent.CommitmentAction action) {

@@ -25,12 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
 import java.util.UUID;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -89,7 +84,7 @@ public class BudgetAllocationServiceImpl implements BudgetAllocationService {
                 budgetAllocationMapper.toCreatedEvent(saved));
 
         BudgetAllocationResponse response = budgetAllocationMapper.toResponse(saved);
-        enrichAllocationResponses(tenantId, List.of(response));
+        displayResolver.enrichCoaSegments(tenantId, List.of(response));
         return response;
     }
 
@@ -100,7 +95,7 @@ public class BudgetAllocationServiceImpl implements BudgetAllocationService {
                 .orElseThrow(() -> new BudgetNotFoundException("Budget allocation not found: " + id));
 
         BudgetAllocationResponse response = budgetAllocationMapper.toResponse(allocation);
-        enrichAllocationResponses(tenantId, List.of(response));
+        displayResolver.enrichCoaSegments(tenantId, List.of(response));
         return response;
     }
 
@@ -111,37 +106,7 @@ public class BudgetAllocationServiceImpl implements BudgetAllocationService {
                 .findByTenantIdAndBudgetPlanId(tenantId, budgetPlanId, pageable)
                 .map(budgetAllocationMapper::toResponse);
 
-        enrichAllocationResponses(tenantId, page.getContent());
+        displayResolver.enrichCoaSegments(tenantId, page.getContent());
         return page;
-    }
-
-    private void enrichAllocationResponses(UUID tenantId, List<BudgetAllocationResponse> responses) {
-        if (responses.isEmpty()) {
-            return;
-        }
-
-        Set<UUID> accountIds = collectIds(responses, BudgetAllocationResponse::getAccountId);
-        Set<UUID> costCenterIds = collectIds(responses, BudgetAllocationResponse::getCostCenterId);
-        Set<UUID> departmentIds = collectIds(responses, BudgetAllocationResponse::getDepartmentId);
-        Set<UUID> fundSourceIds = collectIds(responses, BudgetAllocationResponse::getFundSourceId);
-        Set<UUID> projectIds = collectIds(responses, BudgetAllocationResponse::getProjectId);
-
-        Map<UUID, String> accountNames = displayResolver.resolveAccountNames(tenantId, accountIds);
-        Map<UUID, String> costCenterNames = displayResolver.resolveCostCenterNames(tenantId, costCenterIds);
-        Map<UUID, String> departmentNames = displayResolver.resolveDepartmentNames(tenantId, departmentIds);
-        Map<UUID, String> fundSourceNames = displayResolver.resolveFundSourceNames(tenantId, fundSourceIds);
-        Map<UUID, String> projectNames = displayResolver.resolveProjectNames(tenantId, projectIds);
-
-        for (BudgetAllocationResponse r : responses) {
-            r.setAccountName(accountNames.get(r.getAccountId()));
-            r.setCostCenterName(costCenterNames.get(r.getCostCenterId()));
-            r.setDepartmentName(departmentNames.get(r.getDepartmentId()));
-            r.setFundSourceName(fundSourceNames.get(r.getFundSourceId()));
-            r.setProjectName(projectNames.get(r.getProjectId()));
-        }
-    }
-
-    private Set<UUID> collectIds(List<BudgetAllocationResponse> responses, Function<BudgetAllocationResponse, UUID> extractor) {
-        return responses.stream().map(extractor).filter(Objects::nonNull).collect(Collectors.toSet());
     }
 }

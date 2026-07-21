@@ -16,8 +16,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -73,34 +71,8 @@ public class BudgetLedgerServiceImpl implements BudgetLedgerService {
                 .orElseGet(() -> zeroLedgerFor(tenantId, fiscalYearId, periodId, scope));
 
         BudgetLedgerResponse response = budgetLedgerMapper.toResponse(ledger);
-        enrichWithDisplayNames(tenantId, List.of(response));
+        displayResolver.enrichCoaSegments(tenantId, List.of(response));
         return response;
-    }
-
-    private void enrichWithDisplayNames(UUID tenantId, List<BudgetLedgerResponse> responses) {
-        Set<UUID> accountIds = collectIds(responses, BudgetLedgerResponse::getAccountId);
-        Set<UUID> costCenterIds = collectIds(responses, BudgetLedgerResponse::getCostCenterId);
-        Set<UUID> departmentIds = collectIds(responses, BudgetLedgerResponse::getDepartmentId);
-        Set<UUID> fundSourceIds = collectIds(responses, BudgetLedgerResponse::getFundSourceId);
-        Set<UUID> projectIds = collectIds(responses, BudgetLedgerResponse::getProjectId);
-
-        Map<UUID, String> accountNames = displayResolver.resolveAccountNames(tenantId, accountIds);
-        Map<UUID, String> costCenterNames = displayResolver.resolveCostCenterNames(tenantId, costCenterIds);
-        Map<UUID, String> departmentNames = displayResolver.resolveDepartmentNames(tenantId, departmentIds);
-        Map<UUID, String> fundSourceNames = displayResolver.resolveFundSourceNames(tenantId, fundSourceIds);
-        Map<UUID, String> projectNames = displayResolver.resolveProjectNames(tenantId, projectIds);
-
-        for (BudgetLedgerResponse r : responses) {
-            r.setAccountName(accountNames.get(r.getAccountId()));
-            r.setCostCenterName(costCenterNames.get(r.getCostCenterId()));
-            r.setDepartmentName(departmentNames.get(r.getDepartmentId()));
-            r.setFundSourceName(fundSourceNames.get(r.getFundSourceId()));
-            r.setProjectName(projectNames.get(r.getProjectId()));
-        }
-    }
-
-    private Set<UUID> collectIds(List<BudgetLedgerResponse> responses, java.util.function.Function<BudgetLedgerResponse, UUID> extractor) {
-        return responses.stream().map(extractor).filter(java.util.Objects::nonNull).collect(java.util.stream.Collectors.toSet());
     }
 
     private BudgetLedger findOrCreate(UUID tenantId, UUID fiscalYearId, UUID periodId, CoaSegmentReference scope) {

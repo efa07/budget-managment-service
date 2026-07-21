@@ -5,7 +5,6 @@ import com.saas.budgetmanagement.dto.requestDto.BudgetLineItemRequest;
 import com.saas.budgetmanagement.dto.requestDto.CreateBudgetPlanRequest;
 import com.saas.budgetmanagement.dto.requestDto.UpdateBudgetPlanRequest;
 import com.saas.budgetmanagement.dto.requestDto.ApprovalDecisionRequest;
-import com.saas.budgetmanagement.dto.responseDto.BudgetLineResponse;
 import com.saas.budgetmanagement.dto.responseDto.BudgetPlanResponse;
 import com.saas.budgetmanagement.enums.BudgetPlanStatus;
 import com.saas.budgetmanagement.exception.BudgetNotFoundException;
@@ -218,37 +217,7 @@ public class BudgetPlanServiceImpl implements BudgetPlanService {
             Map<UUID, String> fiscalYearNames = displayResolver.resolveFiscalYearNames(tenantId, Set.of(response.getFiscalYearId()));
             response.setFiscalYearName(fiscalYearNames.get(response.getFiscalYearId()));
         }
-        enrichLineResponses(tenantId, response.getLines());
-    }
-
-    private void enrichLineResponses(UUID tenantId, List<BudgetLineResponse> lines) {
-        if (lines == null || lines.isEmpty()) {
-            return;
-        }
-
-        Set<UUID> accountIds = collectLineIds(lines, BudgetLineResponse::getAccountId);
-        Set<UUID> costCenterIds = collectLineIds(lines, BudgetLineResponse::getCostCenterId);
-        Set<UUID> departmentIds = collectLineIds(lines, BudgetLineResponse::getDepartmentId);
-        Set<UUID> fundSourceIds = collectLineIds(lines, BudgetLineResponse::getFundSourceId);
-        Set<UUID> projectIds = collectLineIds(lines, BudgetLineResponse::getProjectId);
-
-        Map<UUID, String> accountNames = displayResolver.resolveAccountNames(tenantId, accountIds);
-        Map<UUID, String> costCenterNames = displayResolver.resolveCostCenterNames(tenantId, costCenterIds);
-        Map<UUID, String> departmentNames = displayResolver.resolveDepartmentNames(tenantId, departmentIds);
-        Map<UUID, String> fundSourceNames = displayResolver.resolveFundSourceNames(tenantId, fundSourceIds);
-        Map<UUID, String> projectNames = displayResolver.resolveProjectNames(tenantId, projectIds);
-
-        for (BudgetLineResponse line : lines) {
-            line.setAccountName(accountNames.get(line.getAccountId()));
-            line.setCostCenterName(costCenterNames.get(line.getCostCenterId()));
-            line.setDepartmentName(departmentNames.get(line.getDepartmentId()));
-            line.setFundSourceName(fundSourceNames.get(line.getFundSourceId()));
-            line.setProjectName(projectNames.get(line.getProjectId()));
-        }
-    }
-
-    private Set<UUID> collectLineIds(List<BudgetLineResponse> lines, java.util.function.Function<BudgetLineResponse, UUID> extractor) {
-        return lines.stream().map(extractor).filter(java.util.Objects::nonNull).collect(Collectors.toSet());
+        displayResolver.enrichCoaSegments(tenantId, response.getLines());
     }
 
     private CoaSegmentReference toScope(BudgetLineItemRequest lineRequest) {
