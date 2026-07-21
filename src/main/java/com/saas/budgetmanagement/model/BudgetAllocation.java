@@ -30,7 +30,8 @@ public class BudgetAllocation extends Base {
     // --- COA segment references (external_id values from the ref_* cache tables, not live FKs) ---
     @Column(nullable = false)
     private UUID accountId;
-
+    @Column(nullable = false)
+    private UUID periodId;
     private UUID costCenterId;
 
     private UUID departmentId;

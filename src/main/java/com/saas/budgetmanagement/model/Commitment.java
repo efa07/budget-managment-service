@@ -48,6 +48,12 @@ public class Commitment extends Base {
     @Column(nullable = false)
     private UUID accountId;
 
+    @Column(nullable = false)
+    private UUID fiscalYearId;
+
+    @Column(nullable = false)
+    private UUID periodId;
+
     private UUID costCenterId;
 
     private UUID departmentId;
