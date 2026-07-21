@@ -1,5 +1,4 @@
 # Project Context: Budget Management Service
----
 
 ## 1. What this project is
 
@@ -184,11 +183,15 @@ com.saas.budgetmanagement/
 - Model classes start with a capital letter; controller names are plural (`/budget-plans` not `/budget-plan`).
 - Every response DTO extends `BaseResponse`.
 - Always propagate auth/authorization tokens between services (handled via `FeignClientConfig` — use it, don't reimplement token propagation).
-- Tenant ID is always resolved server-side via `SecurityUtil.getTenantId()`, never taken as a blindly trusted path/body parameter.
+- Tenant ID is always resolved server-side, never taken as a blindly trusted path/body parameter.
+  - **`SecurityUtil.getTenantId()` is an instance method returning a `String`, not a static method returning `UUID`.** Every service that needs it must inject `SecurityUtil` via constructor (`@RequiredArgsConstructor` + `private final SecurityUtil securityUtil;`) and convert explicitly: `UUID tenantId = UUID.fromString(securityUtil.getTenantId());`. Never write `SecurityUtil.getTenantId()` as a static call — it will not compile.
+  - **Code that runs outside an authenticated HTTP request — RabbitMQ listeners, `@Scheduled` jobs, JPA entity listeners like `BaseEntityListener` — has no security context, so `SecurityUtil` cannot be used at all in those places.** For listeners, `tenantId` must come from the inbound event envelope instead. For scheduled/background jobs, `tenantId` must be passed in explicitly (e.g., looped over from a tenant registry), never resolved via `SecurityUtil`. `ReferenceDataSyncService`'s methods all take `UUID tenantId` as an explicit first parameter for exactly this reason — follow that pattern for any new service method that might be called from a non-request context.
+- **Never use an unscoped repository method (`findAll(...)`, `findById(...)`, or any other default `JpaRepository` method without a `tenantId` condition) in service code.** These compile fine and look correct, but silently return or match data across every tenant — a serious security bug in this multi-tenant system. Always use (or add, if missing) a repository method that filters by `tenantId` explicitly, e.g. `findByTenantIdAndId(...)`, `findByTenantId(...)`. This mistake has already slipped in twice during this build (`BudgetAllocationService.getById` originally used `findById(id).filter(...)` instead of a proper scoped query; `BudgetTransferService.list` originally fell back to `findAll(pageable)` on its unfiltered branch) — treat any bare `findAll`/`findById` call as a bug to flag, not a convenience to use.
 - Use MapStruct for entity↔DTO mapping — no manual field-by-field mapping in services.
 - Keep controllers thin: no business logic in controllers, only in `service/`.
 - RabbitMQ queue names for this service follow the pattern `create-budget-resource-queue`, `delete-budget-resource-queue`, `change-budget-resource-status-queue` where applicable, and must be registered in `auth-service`'s queue config — that registration is a manual step outside this repo, not something to generate here.
 - New service module must be registered in the parent `pom.xml` and the API Gateway route table — both already done for this service per the setup steps; don't regenerate them.
+- Cross-service reference data (COA segments) is validated via the shared `CoaSegmentValidator` component, and enriched with display names via `CoaSegmentDisplayResolver.enrichCoaSegments(...)` for any response DTO implementing `CoaSegmentDisplayAware` — reuse these rather than writing per-service validation or name-lookup logic.
 
 ---
 

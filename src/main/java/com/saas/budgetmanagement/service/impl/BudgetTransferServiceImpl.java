@@ -153,17 +153,17 @@ public class BudgetTransferServiceImpl implements BudgetTransferService {
         return budgetTransferMapper.toResponse(saved);
     }
 
-    @Override
-    public Page<BudgetTransferResponse> list(String status, Pageable pageable) {
-        UUID tenantId = UUID.fromString(securityUtil.getTenantId());
-        TransferStatus transferStatus = status != null ? TransferStatus.valueOf(status) : null;
+  @Override
+public Page<BudgetTransferResponse> list(String status, Pageable pageable) {
+    UUID tenantId = UUID.fromString(securityUtil.getTenantId());
+    TransferStatus transferStatus = status != null ? TransferStatus.valueOf(status) : null;
 
-        Page<BudgetTransfer> transfers = transferStatus != null
-                ? budgetTransferRepository.findByTenantIdAndStatus(tenantId, transferStatus, pageable)
-                : budgetTransferRepository.findAll(pageable);   // note: NOT tenant-scoped — see flag below
+    Page<BudgetTransfer> transfers = transferStatus != null
+            ? budgetTransferRepository.findByTenantIdAndStatus(tenantId, transferStatus, pageable)
+            : budgetTransferRepository.findByTenantId(tenantId, pageable);
 
-        return transfers.map(budgetTransferMapper::toResponse);
-    }
+    return transfers.map(budgetTransferMapper::toResponse);
+}
 
     private CoaSegmentReference scopeOf(BudgetAllocation allocation) {
         return new CoaSegmentReference(

@@ -14,6 +14,8 @@ public interface BudgetTransferRepository extends JpaRepository<BudgetTransfer, 
 
     Optional<BudgetTransfer> findByTenantIdAndId(UUID tenantId, UUID id);
 
+    Page<BudgetTransfer> findByTenantId(UUID tenantId, Pageable pageable);
+
     Page<BudgetTransfer> findByTenantIdAndStatus(UUID tenantId, TransferStatus status, Pageable pageable);
 
     List<BudgetTransfer> findByTenantIdAndFromAllocationId(UUID tenantId, UUID fromAllocationId);
