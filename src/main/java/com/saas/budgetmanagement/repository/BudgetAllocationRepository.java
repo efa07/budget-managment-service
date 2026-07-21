@@ -9,6 +9,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import java.math.BigDecimal;
+
 public interface BudgetAllocationRepository extends JpaRepository<BudgetAllocation, UUID> {
 
     Optional<BudgetAllocation> findByTenantIdAndId(UUID tenantId, UUID id);
@@ -20,4 +24,9 @@ public interface BudgetAllocationRepository extends JpaRepository<BudgetAllocati
 
     List<BudgetAllocation> findByTenantIdAndAccountIdAndCostCenterIdAndDepartmentIdAndFundSourceIdAndProjectId(
             UUID tenantId, UUID accountId, UUID costCenterId, UUID departmentId, UUID fundSourceId, UUID projectId);
+
+
+        @Query("SELECT COALESCE(SUM(a.allocatedAmount), 0) FROM BudgetAllocation a " +
+        "WHERE a.tenantId = :tenantId AND a.budgetPlanId = :budgetPlanId")
+        BigDecimal sumAllocatedAmountByPlan(@Param("tenantId") UUID tenantId, @Param("budgetPlanId") UUID budgetPlanId);
 }

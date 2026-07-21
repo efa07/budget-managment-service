@@ -32,7 +32,7 @@ public class BudgetAllocationController {
         if (!resolvedTenantId.equals(tenantId)) {
             throw new AccessDeniedException("Tenant mismatch");
         }
-        budgetAllocationService.createAllocation(resolvedTenantId, request);
+        budgetAllocationService.create(request);
         return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
     }
 }

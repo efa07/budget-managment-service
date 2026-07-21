@@ -17,7 +17,7 @@ spring:
         format_sql: true
 
   datasource:
-    url: ${DB_URL:jdbc:mysql://localhost:3306/project-planning_db}?createDatabaseIfNotExist=true
+    url: ${DB_URL:jdbc:mysql://localhost:3306/budget-managment-service}?createDatabaseIfNotExist=true
     username: ${DB_USERNAME:root}
     password: ${DB_PASSWORD:root}
     driver-class-name: com.mysql.cj.jdbc.Driver

@@ -72,7 +72,7 @@ public class BudgetAllocationServiceImpl implements BudgetAllocationService {
         allocation.setProjectId(request.getProjectId());
         allocation.setAllocatedAmount(request.getAmount());
         allocation.setAllocatedAt(LocalDateTime.now());
-        allocation.setAllocatedBy(securityUtil.getCurrentUserId());
+        allocation.setAllocatedBy(UUID.fromString(securityUtil.getUserId()));
 
         BudgetAllocation saved = budgetAllocationRepository.save(allocation);
 
