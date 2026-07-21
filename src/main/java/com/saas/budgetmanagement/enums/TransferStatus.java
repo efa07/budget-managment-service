@@ -5,5 +5,6 @@ public enum TransferStatus {
     REQUESTED,
     APPROVED,
     POSTED,
-    CANCELLED
+    CANCELLED,
+    REJECTED
 }

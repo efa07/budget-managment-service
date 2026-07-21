@@ -67,7 +67,7 @@ public class BudgetTransferServiceImpl implements BudgetTransferService {
         transfer.setAmount(request.getAmount());
         transfer.setStatus(TransferStatus.REQUESTED);
         transfer.setJustification(request.getJustification());
-        transfer.setRequestedBy(securityUtil.getCurrentUserId());
+        transfer.setRequestedBy(UUID.fromString(securityUtil.getUserId()));
 
         BudgetTransfer saved = budgetTransferRepository.save(transfer);
 
@@ -124,7 +124,7 @@ public class BudgetTransferServiceImpl implements BudgetTransferService {
                 tenantId, toPlan.getFiscalYearId(), toAllocation.getPeriodId(), toScope, transfer.getAmount());
 
         transfer.setStatus(TransferStatus.APPROVED);
-        transfer.setApprovedBy(securityUtil.getCurrentUserId());
+        transfer.setApprovedBy(UUID.fromString(securityUtil.getUserId()));
         BudgetTransfer saved = budgetTransferRepository.save(transfer);
 
         eventPublisherService.publish(

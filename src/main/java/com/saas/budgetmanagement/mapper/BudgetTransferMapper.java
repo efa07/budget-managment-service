@@ -2,7 +2,7 @@ package com.saas.budgetmanagement.mapper;
 
 import com.saas.budgetmanagement.dto.eventDto.outbound.BudgetTransferApprovedEvent;
 import com.saas.budgetmanagement.dto.eventDto.outbound.BudgetTransferRequestedEvent;
-import com.saas.budgetmanagement.dto.response.BudgetTransferResponse;
+import com.saas.budgetmanagement.dto.responseDto.BudgetTransferResponse;
 import com.saas.budgetmanagement.model.BudgetTransfer;
 import org.mapstruct.Mapper;
 

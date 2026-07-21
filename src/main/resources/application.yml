@@ -3,7 +3,7 @@ server:
 
 spring:
   application:
-    name: project-planning-service
+    name: budget-managment-service
 
   config:
     import: optional:configserver:${CONFIG_SERVER_BASE_URL:http://config-server.default.svc.cluster.local:8888}
