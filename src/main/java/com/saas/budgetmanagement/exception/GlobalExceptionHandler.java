@@ -31,6 +31,16 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
     }
 
+    @ExceptionHandler(InvalidBudgetStateException.class)
+    public ResponseEntity<String> handleInvalidBudgetStateException(InvalidBudgetStateException e) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
+    }
+
+    @ExceptionHandler(InvalidCoaSegmentException.class)
+    public ResponseEntity<String> handleInvalidCoaSegmentException(InvalidCoaSegmentException e) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<String> handleException(Exception e) {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
@@ -84,4 +94,37 @@ public class GlobalExceptionHandler {
                 .collect(Collectors.toList());
         return ResponseEntity.badRequest().body(errorMessages);
     }
+
+    public class BudgetNotFoundException extends ResourceNotFoundException {
+    public BudgetNotFoundException(String message) {
+        super(message);
+    }
+}
+    public abstract class InvalidBudgetStateException extends RuntimeException {
+    protected InvalidBudgetStateException(String message) {
+        super(message);
+    }
+}
+
+public class InvalidBudgetPlanStateException extends InvalidBudgetStateException {
+    public InvalidBudgetPlanStateException(String message) {
+        super(message);
+    }
+
+    public class InvalidBudgetTransferStateException extends InvalidBudgetStateException {
+    public InvalidBudgetTransferStateException(String message) {
+        super(message);
+    }
+}
+}
+public class InvalidBudgetRevisionException extends InvalidBudgetStateException {
+    public InvalidBudgetRevisionException(String message) {
+        super(message);
+    }
+}
+public class InvalidCoaSegmentException extends RuntimeException {
+    public InvalidCoaSegmentException(String message) {
+        super(message);
+    }
+}
 }
