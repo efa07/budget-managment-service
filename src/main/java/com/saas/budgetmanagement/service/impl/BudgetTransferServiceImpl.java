@@ -134,6 +134,14 @@ public class BudgetTransferServiceImpl implements BudgetTransferService {
         return budgetTransferMapper.toResponse(saved);
     }
 
+@Override
+public BudgetTransferResponse getById(UUID id) {
+    UUID tenantId = UUID.fromString(securityUtil.getTenantId());
+    BudgetTransfer transfer = budgetTransferRepository.findByTenantIdAndId(tenantId, id)
+            .orElseThrow(() -> new BudgetNotFoundException("Budget transfer not found: " + id));
+    return budgetTransferMapper.toResponse(transfer);
+}
+
     @Override
     @Transactional
     public BudgetTransferResponse reject(UUID id, ApprovalDecisionRequest request) {

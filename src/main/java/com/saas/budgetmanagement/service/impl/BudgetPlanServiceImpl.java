@@ -17,6 +17,7 @@ import com.saas.budgetmanagement.repository.BudgetLineRepository;
 import com.saas.budgetmanagement.repository.BudgetPlanRepository;
 import com.saas.budgetmanagement.repository.refcache.RefFiscalYearRepository;
 import com.saas.budgetmanagement.service.BudgetEventPublisherService;
+import com.saas.budgetmanagement.service.BudgetApprovalService;
 import com.saas.budgetmanagement.service.BudgetPlanService;
 import com.saas.budgetmanagement.utility.CoaSegmentDisplayResolver;
 import com.saas.budgetmanagement.utility.CoaSegmentValidator;
@@ -47,6 +48,7 @@ public class BudgetPlanServiceImpl implements BudgetPlanService {
     private final BudgetEventPublisherService eventPublisherService;
     private final BudgetPlanMapper budgetPlanMapper;
     private final SecurityUtil securityUtil;
+    private final BudgetApprovalService budgetApprovalService;
     private final CoaSegmentDisplayResolver displayResolver;
     private final CoaSegmentValidator coaSegmentValidator;
 
@@ -164,6 +166,8 @@ public class BudgetPlanServiceImpl implements BudgetPlanService {
         if (plan.getStatus() != BudgetPlanStatus.SUBMITTED) {
             throw new InvalidBudgetPlanStateException("Only SUBMITTED plans can be approved. Current status: " + plan.getStatus());
         }
+
+        budgetApprovalService.assertCanApprove(tenantId, UUID.fromString(securityUtil.getCurrentUserId()), plan);
 
         plan.setStatus(BudgetPlanStatus.APPROVED);
         plan.setApprovedBy(UUID.fromString(securityUtil.getUserId()));

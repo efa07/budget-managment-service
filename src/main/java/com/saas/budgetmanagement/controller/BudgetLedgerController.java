@@ -1,36 +1,40 @@
 package com.saas.budgetmanagement.controller;
 
+import com.saas.budgetmanagement.dto.common.CoaSegmentReference;
+import com.saas.budgetmanagement.dto.responseDto.BudgetLedgerResponse;
 import com.saas.budgetmanagement.service.BudgetLedgerService;
 import com.saas.budgetmanagement.utility.SecurityUtil;
-import org.springframework.http.HttpStatus;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.AccessDeniedException;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/budget-management/budget-ledger/{tenantId}")
+@RequiredArgsConstructor
+@Tag(name = "Budget Ledger")
 public class BudgetLedgerController {
 
     private final BudgetLedgerService budgetLedgerService;
     private final SecurityUtil securityUtil;
 
-    public BudgetLedgerController(BudgetLedgerService budgetLedgerService, SecurityUtil securityUtil) {
-        this.budgetLedgerService = budgetLedgerService;
-        this.securityUtil = securityUtil;
-    }
-
     @GetMapping
-    public ResponseEntity<Void> getBudgetLedger(@PathVariable UUID tenantId) {
+    public ResponseEntity<BudgetLedgerResponse> getLedger(@PathVariable UUID tenantId,
+                                                            @RequestParam UUID fiscalYearId,
+                                                            @RequestParam UUID periodId,
+                                                            @RequestParam UUID accountId,
+                                                            @RequestParam(required = false) UUID costCenterId,
+                                                            @RequestParam(required = false) UUID departmentId,
+                                                            @RequestParam(required = false) UUID fundSourceId,
+                                                            @RequestParam(required = false) UUID projectId) {
+
         UUID resolvedTenantId = UUID.fromString(securityUtil.getTenantId());
-        if (!resolvedTenantId.equals(tenantId)) {
-            throw new AccessDeniedException("Tenant mismatch");
-        }
-        budgetLedgerService.getLedger(resolvedTenantId, null, null, null);
-        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
+
+        CoaSegmentReference scope = new CoaSegmentReference(
+                accountId, costCenterId, departmentId, fundSourceId, projectId);
+
+        return ResponseEntity.ok(budgetLedgerService.getLedger(resolvedTenantId, fiscalYearId, periodId, scope));
     }
 }

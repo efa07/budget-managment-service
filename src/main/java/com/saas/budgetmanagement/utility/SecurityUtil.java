@@ -39,4 +39,8 @@ public class SecurityUtil {
     public String getName() {
         return getClaim("name");
     }
+
+    public String getCurrentUserId() {
+        return getUserId();
+    }
 }

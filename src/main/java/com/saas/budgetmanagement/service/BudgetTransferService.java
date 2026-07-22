@@ -12,6 +12,8 @@ public interface BudgetTransferService {
 
     BudgetTransferResponse requestTransfer(CreateTransferRequest request);
 
+    BudgetTransferResponse getById(UUID id);
+
     BudgetTransferResponse approve(UUID id, ApprovalDecisionRequest request);
 
     BudgetTransferResponse reject(UUID id, ApprovalDecisionRequest request);

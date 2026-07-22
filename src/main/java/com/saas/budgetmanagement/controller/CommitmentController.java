@@ -1,36 +1,44 @@
 package com.saas.budgetmanagement.controller;
 
+import com.saas.budgetmanagement.dto.requestDto.AdjustCommitmentRequest;
+import com.saas.budgetmanagement.dto.responseDto.CommitmentResponse;
+import com.saas.budgetmanagement.enums.SourceService;
 import com.saas.budgetmanagement.service.CommitmentService;
-import com.saas.budgetmanagement.utility.SecurityUtil;
-import org.springframework.http.HttpStatus;
+import com.saas.budgetmanagement.utility.PermissionUtil;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/budget-management/commitments/{tenantId}")
+@RequiredArgsConstructor
+@Tag(name = "Commitment")
 public class CommitmentController {
 
     private final CommitmentService commitmentService;
-    private final SecurityUtil securityUtil;
+    private final PermissionUtil permissionUtil;
 
-    public CommitmentController(CommitmentService commitmentService, SecurityUtil securityUtil) {
-        this.commitmentService = commitmentService;
-        this.securityUtil = securityUtil;
+    @GetMapping
+    public ResponseEntity<Page<CommitmentResponse>> list(@PathVariable UUID tenantId,
+                                                           @RequestParam SourceService sourceService,
+                                                           @RequestParam(required = false) String status,
+                                                           Pageable pageable) {
+        return ResponseEntity.ok(commitmentService.list(sourceService, status, pageable));
     }
 
-    @PostMapping
-    public ResponseEntity<Void> registerCommitment(@PathVariable UUID tenantId) {
-        UUID resolvedTenantId = UUID.fromString(securityUtil.getTenantId());
-        if (!resolvedTenantId.equals(tenantId)) {
-            throw new AccessDeniedException("Tenant mismatch");
+    @PostMapping("/{id}/adjust")
+    public ResponseEntity<CommitmentResponse> adjust(@PathVariable UUID tenantId, @PathVariable UUID id,
+                                                       @Valid @RequestBody AdjustCommitmentRequest request) {
+        if (!permissionUtil.hasPermission(tenantId, "commitment-manual-adjust")) {
+            throw new AccessDeniedException("You do not have permission to manually adjust commitments");
         }
-        commitmentService.registerCommitment(resolvedTenantId);
-        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
+        return ResponseEntity.ok(commitmentService.adjustManually(id, request.getAdjustmentAmount(), request.getReason()));
     }
 }
