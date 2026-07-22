@@ -1,6 +1,8 @@
 server:
   port: 9192
 
+api-gateway-base-url: ${API_GATEWAY_BASE_URL:http://localhost:8222}
+
 spring:
   application:
     name: budget-managment-service
@@ -22,6 +24,12 @@ spring:
     password: ${DB_PASSWORD:root}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${keycloak.server-url}/realms/${keycloak.realm}
+
   servlet:
     multipart:
       enabled: true
@@ -30,11 +38,19 @@ spring:
       max-request-size: 10MB
 
 rabbitmq:
-  create-resource-queue:  create-demo-resource-queue
-  delete-resource-queue:  delete-demo-resource-queue
+  create-resource-queue: create-demo-resource-queue
+  delete-resource-queue: delete-demo-resource-queue
   change-resource-status-queue: change-demo-resource-status-queue
-  queues:
-    accounts-payable-sync: accounts-payable-sync-queue
+
+budget-management:
+  rabbitmq:
+    queues:
+      accounts-payable-sync: accounts-payable-sync-queue
+      employee-finance-sync: employee-finance-sync-queue
+      asset-finance-sync: asset-finance-sync-queue
+      gl-actual-sync: gl-actual-sync-queue
+      finance-admin-sync: finance-admin-sync-queue
+      cash-banking-sync: cash-banking-sync-queue
 
 keycloak:
   server-url: http://172.20.136.100:30282
