@@ -17,7 +17,7 @@ spring:
         format_sql: true
 
   datasource:
-    url: ${DB_URL:jdbc:mysql://localhost:3306/budget-managment-service}?createDatabaseIfNotExist=true
+    url: ${DB_URL:jdbc:mysql://localhost:3306/budget_managment_service?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true}
     username: ${DB_USERNAME:root}
     password: ${DB_PASSWORD:root}
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -33,6 +33,8 @@ rabbitmq:
   create-resource-queue:  create-demo-resource-queue
   delete-resource-queue:  delete-demo-resource-queue
   change-resource-status-queue: change-demo-resource-status-queue
+  queues:
+    accounts-payable-sync: accounts-payable-sync-queue
 
 keycloak:
   server-url: http://172.20.136.100:30282
