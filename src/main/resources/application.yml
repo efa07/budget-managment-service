@@ -59,8 +59,11 @@ keycloak:
   client-secret: APHalzvUVsfz9Jffe5ZAZ1XImFwv5a8K
   openIdConnectUrl: ${keycloak.server-url}/realms/${keycloak.realm}/.well-known/openid-configuration
 
-
-
-
-
-
+eureka:
+  instance:
+    prefer-ip-address: true
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: http://172.20.136.100:8761/eureka/
