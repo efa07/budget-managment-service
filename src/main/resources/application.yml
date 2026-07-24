@@ -59,6 +59,12 @@ keycloak:
   client-secret: APHalzvUVsfz9Jffe5ZAZ1XImFwv5a8K
   openIdConnectUrl: ${keycloak.server-url}/realms/${keycloak.realm}/.well-known/openid-configuration
 
+springdoc:
+  swagger-ui:
+    oauth:
+      client-id: ${keycloak.client-id}
+      client-secret: ${keycloak.client-secret}
+
 eureka:
   instance:
     prefer-ip-address: true
