@@ -44,8 +44,8 @@ public class OpenApiConfig {
                                         .email("Owner email address")
                                         .url("Owner website url"))
                                 .license(new License().name("License name").url("License url")))
-                        .addServersItem(new Server().url(apiGatewayBaseUrl).description("Remote ENV"))
                         .addServersItem(new Server().url(localhostUrl).description("Local ENV"))
+                        .addServersItem(new Server().url(apiGatewayBaseUrl).description("Remote ENV"))
                         .addSecurityItem(new SecurityRequirement().addList("Keycloak"))
                         .schemaRequirement(
                                 "Keycloak",

@@ -25,9 +25,10 @@ public class SecurityUtil {
     }
 
     public String getClaim(String claim) {
-
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        Jwt jwt = (Jwt) authentication.getPrincipal();
+        if (authentication == null || !(authentication.getPrincipal() instanceof Jwt jwt)) {
+            return null;
+        }
         return jwt.hasClaim(claim) ? jwt.getClaim(claim).toString() : null;
     }
 

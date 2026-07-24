@@ -13,7 +13,9 @@ public class BaseEntityListener {
     @PrePersist
     public void beforePersist(Base base) {
         SecurityUtil securityUtil = SpringContextHolder.getBean(SecurityUtil.class);
-        base.setTenantId(UUID.fromString(securityUtil.getTenantId()));
+        if (base.getTenantId() == null) {
+            base.setTenantId(UUID.fromString(securityUtil.getTenantId()));
+        }
 
         String createdBy = ResourceEventContext.get();
         if (createdBy != null) {
