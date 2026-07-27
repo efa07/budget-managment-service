@@ -23,6 +23,7 @@ public class BudgetEventPublisherServiceImpl implements BudgetEventPublisherServ
 
     private final OutboxEventRepository outboxEventRepository;
     private final ObjectMapper objectMapper;
+    private final SecurityUtil securityUtil;
 
     @Override
     @Transactional
@@ -33,7 +34,6 @@ public class BudgetEventPublisherServiceImpl implements BudgetEventPublisherServ
     @Override
     @Transactional
     public void publish(String eventType, String routingKey, Object payload, String correlationId) {
-        SecurityUtil securityUtil = new SecurityUtil();
         UUID tenantId = UUID.fromString(securityUtil.getTenantId());
 
         EventEnvelope<Object> envelope = new EventEnvelope<>(

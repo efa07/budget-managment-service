@@ -7,6 +7,8 @@ import io.swagger.v3.oas.models.info.License;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.servers.Server;
+import io.swagger.v3.oas.models.parameters.Parameter;
+import org.springdoc.core.customizers.OperationCustomizer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -55,6 +57,23 @@ public class OpenApiConfig {
                                         .bearerFormat("JWT")
                                         .in(SecurityScheme.In.HEADER)
                                         .openIdConnectUrl(keycloakOpenIdConnectUrl));
+        }
+
+        @Bean
+        public OperationCustomizer customizeTenantId() {
+                return (operation, handlerMethod) -> {
+                        if (operation.getParameters() != null) {
+                                for (Parameter parameter : operation.getParameters()) {
+                                        if ("tenantId".equals(parameter.getName())) {
+                                                parameter.setExample("3fa85f64-5717-4562-b3fc-2c963f66afa6");
+                                                if (parameter.getSchema() != null) {
+                                                        parameter.getSchema().setDefault("3fa85f64-5717-4562-b3fc-2c963f66afa6");
+                                                }
+                                        }
+                                }
+                        }
+                        return operation;
+                };
         }
 
         private String capitalizeApplicationName(String applicationName) {
