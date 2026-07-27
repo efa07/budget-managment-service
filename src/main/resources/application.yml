@@ -74,8 +74,3 @@ eureka:
     service-url:
       defaultZone: http://172.20.136.100:8761/eureka/
 
-
-
-##"id": fa5da6f5-2f95-4cb6-b0a6-51afe9cfb3e7
-## $LINE_1_ID : 87946cc1-d23c-47d3-92d4-3c6f87d69c34
-## $LINE_2_ID: 62822735-1308-44e3-9534-cccc879ea832
