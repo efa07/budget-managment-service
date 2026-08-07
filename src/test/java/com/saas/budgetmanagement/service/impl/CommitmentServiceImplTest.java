@@ -67,7 +67,7 @@ class CommitmentServiceImplTest {
         commitments.add(commitment);
 
         when(commitmentRepository.findByTenantIdAndSourceServiceAndStatus(
-                eq(tenantId), eq(SourceService.AP), any(CommitmentStatus.class), any(Pageable.class)))
+                eq(tenantId), eq(SourceService.AP), org.mockito.ArgumentMatchers.nullable(CommitmentStatus.class), any(Pageable.class)))
                 .thenReturn(new PageImpl<>(commitments, PageRequest.of(0, 10), 1));
         when(commitmentMapper.toResponse(commitment)).thenReturn(response);
 
@@ -76,6 +76,7 @@ class CommitmentServiceImplTest {
         when(displayResolver.resolveDepartmentNames(eq(tenantId), ArgumentMatchers.<Set<UUID>>any())).thenReturn(Map.of(departmentId, "Department"));
         when(displayResolver.resolveFundSourceNames(eq(tenantId), ArgumentMatchers.<Set<UUID>>any())).thenReturn(Map.of(fundSourceId, "Fund Source"));
         when(displayResolver.resolveProjectNames(eq(tenantId), ArgumentMatchers.<Set<UUID>>any())).thenReturn(Map.of(projectId, "Project"));
+        org.mockito.Mockito.doCallRealMethod().when(displayResolver).enrichCoaSegments(any(), any());
 
         Page<CommitmentResponse> result = service.list(SourceService.AP, null, PageRequest.of(0, 10));
 
