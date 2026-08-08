@@ -1,5 +1,9 @@
 # Project Context: Budget Management Service
 
+Paste this into Copilot Chat (or add it as a `.github/copilot-instructions.md` / workspace context file) so it has full background before generating code. This is reference context, not a task list — refer back to it, don't execute it top to bottom.
+
+---
+
 ## 1. What this project is
 
 This is a **production SaaS-based ERP system** intended to be hosted for **national-level organizations in Ethiopia**. This is a real deployment target, not a training/intern exercise — treat security, data handling, and reliability requirements as hard constraints, not nice-to-haves. This service — **Budget Management Service** — is one of ten planned microservices inside the system's **Finance module**, alongside Finance Administration, General Ledger, Cash & Banking, Accounts Payable, Accounts Receivable, Employee Finance, Asset & Inventory Finance, Financial Reporting, and Audit & Compliance.
@@ -194,6 +198,20 @@ com.saas.budgetmanagement/
 - Cross-service reference data (COA segments) is validated via the shared `CoaSegmentValidator` component, and enriched with display names via `CoaSegmentDisplayResolver.enrichCoaSegments(...)` for any response DTO implementing `CoaSegmentDisplayAware` — reuse these rather than writing per-service validation or name-lookup logic.
 
 ---
+
+## 13. Owned by other teams — do not modify, but flag findings here
+
+Security, Keycloak, and tenant management infrastructure (`SecurityUtil`, `PermissionUtil`, `RoleConverter`, `KeycloakConfig`, `SecurityConfig`, and the concept of `tenantId` itself) are owned and developed by a separate team responsible for the shared ERP-wide auth layer, not by this service. This service is a **consumer** of that infrastructure — it calls into it correctly, but does not modify, patch, or work around it, even when a gap is found.
+
+**Current placeholder assumptions this service has been built and tested against, pending confirmation from that team:**
+- JWT tenant claim name: `"tenantId"` (read by `SecurityUtil.getTenantId()`)
+- JWT role claim used for admin checks: a `GrantedAuthority` with value `"admin"` (checked by `PermissionUtil.isAdmin()`/`hasPermission(...)`)
+- `PermissionUtil.hasPermission(tenantId, resourceName)`'s `resourceName` parameter is currently **not** used for real per-permission logic — every call is effectively just an admin-or-not check regardless of which resource string is passed. Real per-action permission granularity does not exist yet.
+- Placeholder tenant UUID used throughout local dev/testing: `3fa85f64-5717-4562-b3fc-2c963f66afa6`
+
+**Known gap to raise with the security/Keycloak team, not fix locally:** `SecurityUtil.getTenantId()` currently falls back to a hardcoded UUID (`3fa85f64-5717-4562-b3fc-2c963f66afa6`, the same placeholder used in local testing) if the JWT's tenant claim is missing, instead of throwing. This means a malformed or misconfigured token could silently attribute newly created records to that placeholder tenant rather than failing the request. This is flagged here as a finding for that team to evaluate — not something to patch from within this service.
+
+Before production, this service's actual behavior should be re-verified against that team's real Keycloak realm/client configuration once available — claim names, role strings, and the tenant-resolution fallback behavior above should all be explicitly confirmed, not assumed to still match what's listed here.
 
 ## How to use this context
 
