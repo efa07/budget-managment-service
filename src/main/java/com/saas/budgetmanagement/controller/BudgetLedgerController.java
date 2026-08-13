@@ -7,6 +7,8 @@ import com.saas.budgetmanagement.utility.SecurityUtil;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -37,4 +39,15 @@ public class BudgetLedgerController {
 
         return ResponseEntity.ok(budgetLedgerService.getLedger(resolvedTenantId, fiscalYearId, periodId, scope));
     }
+
+
+    @GetMapping("/summary")
+    public ResponseEntity<Page<BudgetLedgerResponse>> listByPeriod(@PathVariable UUID tenantId,
+                                                                    @RequestParam UUID fiscalYearId,
+                                                                    @RequestParam UUID periodId,
+                                                                    Pageable pageable) {
+        UUID resolvedTenantId = UUID.fromString(securityUtil.getTenantId());
+        return ResponseEntity.ok(budgetLedgerService.listByPeriod(resolvedTenantId, fiscalYearId, periodId, pageable));
+    }
+
 }

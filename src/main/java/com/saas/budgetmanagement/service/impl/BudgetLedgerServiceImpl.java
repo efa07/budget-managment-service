@@ -12,6 +12,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -109,5 +111,16 @@ public class BudgetLedgerServiceImpl implements BudgetLedgerService {
                 .subtract(ledger.getActualAmount());
         ledger.setAvailableAmount(available);
         ledger.setLastUpdatedAt(LocalDateTime.now());
+    }
+
+
+    @Override
+    public Page<BudgetLedgerResponse> listByPeriod(UUID tenantId, UUID fiscalYearId, UUID periodId, Pageable pageable) {
+        Page<BudgetLedgerResponse> page = budgetLedgerRepository
+                .findByTenantIdAndFiscalYearIdAndPeriodId(tenantId, fiscalYearId, periodId, pageable)
+                .map(budgetLedgerMapper::toResponse);
+
+        displayResolver.enrichCoaSegments(tenantId, page.getContent());
+        return page;
     }
 }
