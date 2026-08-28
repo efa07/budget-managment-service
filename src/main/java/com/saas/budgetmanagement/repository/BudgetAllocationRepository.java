@@ -29,4 +29,9 @@ public interface BudgetAllocationRepository extends JpaRepository<BudgetAllocati
         @Query("SELECT COALESCE(SUM(a.allocatedAmount), 0) FROM BudgetAllocation a " +
         "WHERE a.tenantId = :tenantId AND a.budgetPlanId = :budgetPlanId")
         BigDecimal sumAllocatedAmountByPlan(@Param("tenantId") UUID tenantId, @Param("budgetPlanId") UUID budgetPlanId);
+
+        @Query("SELECT p.fiscalYearId FROM BudgetAllocation a JOIN BudgetPlan p ON p.id = a.budgetPlanId " +
+                "WHERE a.tenantId = :tenantId AND p.tenantId = :tenantId AND a.id = :allocationId")
+        Optional<UUID> findFiscalYearIdByTenantIdAndAllocationId(
+                        @Param("tenantId") UUID tenantId, @Param("allocationId") UUID allocationId);
 }
