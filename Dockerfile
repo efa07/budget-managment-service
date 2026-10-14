@@ -1,14 +1,27 @@
-# Base image
-FROM eclipse-temurin:21-jdk-ubi9-minimal
+FROM maven:3.9.9-eclipse-temurin-21 AS build
 
-# Set the working directory
+WORKDIR /workspace
+
+COPY .mvn/ .mvn/
+COPY mvnw pom.xml ./
+RUN chmod +x mvnw && ./mvnw -B dependency:go-offline
+
+COPY src/ src/
+RUN ./mvnw -B clean package -DskipTests
+
+FROM eclipse-temurin:21-jre-jammy
+
 WORKDIR /app
 
+RUN groupadd --system app && \
+    useradd --system --uid 10001 --gid app app
 
-COPY target/app.jar app.jar
+COPY --from=build --chown=app:app /workspace/target/app.jar /app/app.jar
 
-# Expose the port the application runs on
-EXPOSE 8194
+USER app
 
-# Command to run the application
-ENTRYPOINT ["java", "-jar", "app.jar"]
+EXPOSE 9192
+
+ENV JAVA_TOOL_OPTIONS="-XX:MaxRAMPercentage=75.0 -Djava.security.egd=file:/dev/./urandom"
+
+ENTRYPOINT ["java", "-jar", "/app/app.jar"]

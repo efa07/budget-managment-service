@@ -1,0 +1,13 @@
+.git
+.github
+.idea
+.vscode
+target
+*.log
+.env
+.env.*
+Dockerfile
+docker-compose*.yml
+README*
+GAP_ANALYSIS.md
+HELP.md

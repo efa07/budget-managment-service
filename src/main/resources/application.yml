@@ -26,7 +26,7 @@ spring:
 
   security:
     oauth2:
-      resource server:
+      resourceserver:
         jwt:
           issuer-uri: ${keycloak.server-url}/realms/${keycloak.realm}
 
