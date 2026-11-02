@@ -15,7 +15,7 @@ import java.util.UUID;
 
 @Component
 @Profile("local")
-@RequiredArgsConstructor
+                                                                                            
 @Slf4j
 public class LocalDevDataSeeder implements ApplicationRunner {
 
